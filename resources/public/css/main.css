@@ -1,0 +1,31 @@
+html, body {
+    overflow: hidden;
+    height: 100%;
+}
+
+.app {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+.world > rect.background{
+    border: 1px solid black;
+    fill: rgba(0, 0, 0, 0.80);
+}
+
+.spaceship > .body {
+    fill: white;
+}
+
+.spaceship > .engine {
+    fill: orange;
+}
+
+.bullet > .body {
+    fill: #00ff07;
+}
+
+.asteroid {
+    fill: grey;
+}
