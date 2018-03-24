@@ -6,8 +6,7 @@ mkdir -p out
 
 echo "Compiling JS"
 lein build
-cp -R public/* out/
-rm -rf out/js/release
+cp -R resources/public/* out/
 
 # echo "Compiling sass"
 # sass --update out/css:out/css --style compressed
