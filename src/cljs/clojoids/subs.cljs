@@ -17,3 +17,11 @@
 (re-frame/reg-sub
   ::asteroids
   :asteroids)
+
+(re-frame/reg-sub
+  ::score
+  :score)
+
+(re-frame/reg-sub
+  ::paused?
+  :paused?)

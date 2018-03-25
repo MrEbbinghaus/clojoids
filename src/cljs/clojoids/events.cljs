@@ -17,7 +17,10 @@
              (-> db
                  (assoc :bullet-cooldown (/ 1 config/firing-rate))
                  (update :bullets conj (game/shoot (:spaceship db))))
-             db)))
+             db)
+    :pause (do
+             (js/console.log "Paused!")
+             (update db :paused? not))))
 
 (defn map-function-on-map-vals [m f]
   (reduce (fn [altered-map [k v]] (assoc altered-map k (f v))) {} m))
@@ -36,22 +39,25 @@
 (re-frame/reg-event-db
   ::tick
   (fn [{tick :tick :as db} [_]]
-    (when (every 5 tick) (game/dispatch-collisions! (:asteroids db) (:bullets db)))
-    (cond-> db
-            :always (assoc-in [:spaceship :engine?] false)
-            :always handle-keys
+    (if (:paused? db)
+      (handle-keys db)
+      (do
+        (when (every 2 tick) (game/dispatch-collisions! (:asteroids db) (:bullets db)))
+        (cond-> db
+                :always (assoc-in [:spaceship :engine?] false)
+                :always handle-keys
 
-            (pos? (:bullet-cooldown db)) (update :bullet-cooldown dec)
+                (pos? (:bullet-cooldown db)) (update :bullet-cooldown dec)
 
-            (and (< (count (:asteroids db)) config/max-asteroids)
-                 (zero? (mod tick config/asteroid-spawn-rate)))
-            (update :asteroids conj (game/spawn-asteroid 3))
+                (and (< (count (:asteroids db)) config/max-asteroids)
+                     (zero? (mod tick config/asteroid-spawn-rate)))
+                (update :asteroids conj (game/spawn-asteroid 3))
 
-            :always (update :bullets game/update-bullets)
-            :always (update :spaceship game/move-entity)
-            :always (update :asteroids #(map game/move-entity %))
-            :always (update :bullets #(map game/move-entity %))
-            :always (update :tick inc))))
+                :always (update :bullets game/update-bullets)
+                :always (update :spaceship game/move-entity)
+                :always (update :asteroids #(map game/move-entity %))
+                :always (update :bullets #(map game/move-entity %))
+                :always (update :tick inc))))))
 
 (re-frame/reg-event-db
   ::key-down
@@ -61,12 +67,10 @@
 (re-frame/reg-event-db
   ::bullet-collison
   (fn [db [_ {:keys [position size] :as asteroid} bullet]]
-    (if (< 1 size)
-      (-> db
-          (update :asteroids conj (game/spawn-asteroid position (dec size)))
-          (update :asteroids conj (game/spawn-asteroid position (dec size)))
-          (update :bullets (partial filter #(not= (:id %) (:id bullet))))
-          (update :asteroids (partial filter #(not= (:id %) (:id asteroid)))))
-      (-> db
-        (update :bullets (partial filter #(not= (:id %) (:id bullet))))
-        (update :asteroids (partial filter #(not= (:id %) (:id asteroid))))))))
+    (let [large-asteroid? (< 1 size)]
+      (cond-> db
+              :always (update :score inc)
+              large-asteroid? (update :asteroids conj (game/spawn-asteroid position (dec size)))
+              large-asteroid? (update :asteroids conj (game/spawn-asteroid position (dec size)))
+              :always (update :bullets (partial filter #(not= (:id %) (:id bullet))))
+              :always (update :asteroids (partial filter #(not= (:id %) (:id asteroid))))))))

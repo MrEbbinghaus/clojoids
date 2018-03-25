@@ -13,18 +13,6 @@
         y (Math/abs (- y1 y2))]
     (js/Math.sqrt (+ (* x x) (* y y)))))
 
-(defn accelerate
-  ([speed] (accelerate speed 0.1))
-  ([speed amount] (+ speed amount)))
-
-(defn decelerate
-  ([speed] (decelerate speed 0.2))
-  ([speed amount]
-   (let [new-speed (- speed amount)]
-     (if (neg? new-speed)
-       0
-       new-speed))))
-
 (defn turn-left [direction]
   (mod (- direction config/turning-speed) 360))
 
@@ -32,9 +20,9 @@
   (mod (+ direction config/turning-speed) 360))
 
 (defn update-movement [spaceship]
-  (let [acceleration (:acceleration spaceship)
-        direction (deg->rad (:direction spaceship))
-        rel-movement [(* acceleration (Math/cos direction)) (* acceleration (Math/sin direction))]]
+  (let [direction (deg->rad (:direction spaceship))
+        rel-movement [(* config/spaceship-acceleration (Math/cos direction))
+                      (* config/spaceship-acceleration (Math/sin direction))]]
     (update spaceship :movement #(map + % rel-movement))))
 
 (defn wrap-around-world [pos]
@@ -46,13 +34,13 @@
     (update entity :position #(wrap-around-world (map + % rel-pos)))))
 
 
-(defn shoot [{:keys [position acceleration movement direction]}]
-  (let [bullet-acceleration (* acceleration 50)
+(defn shoot [{:keys [position movement direction]}]
+  (let [bullet-acceleration (* config/spaceship-acceleration 50)
         bullet-direction (deg->rad direction)
         rel-movement [(* bullet-acceleration (Math/cos bullet-direction))
                       (* bullet-acceleration (Math/sin bullet-direction))]]
-    {:id (random-uuid)
-     :ttl      (ms->ticks 3000)
+    {:id       (random-uuid)
+     :ttl      (ms->ticks config/bullet-ttl)
      :position position
      :movement (map + movement rel-movement)}))
 

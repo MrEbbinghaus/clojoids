@@ -6,7 +6,7 @@
 (defn spaceship []
   (let [{:keys [position direction engine?]} @(re-frame/subscribe [::subs/spaceship])]
     [:g.spaceship
-     {:transform (str "translate" position
+     {:transform (str "translate(" (first position) " " (second position) ")"
                       " rotate(" (+ 90 direction) ")")}
      [:polygon.engine {:points    "0 -1  -1 1  1 1"
                        :transform (str "translate(0, 0.71) rotate(180) scale(0.5 " (if engine? 0.6 0.2) ")")}
@@ -51,13 +51,32 @@
     [spaceship]
     [asteroid-pane]])
 
-(defn clock []
-  (let [time (re-frame/subscribe [::subs/time])]
-    [:text {:x 0.1 :y 0.5 :font-size 0.4 :fill "white"} (str "Time: " @time)]))
+(defn timer []
+  (let [timer (re-frame/subscribe [::subs/time])]
+    [:text {:x 0.1 :y 0.5 :font-size 0.4 :fill "white"}
+     (str "Time: " @timer)]))
+
+(defn score []
+  (let [score (re-frame/subscribe [::subs/score])]
+    [:text {:x 0.1 :y 1 :font-size 0.4 :fill "white"}
+     (str "Score: " @score)]))
+
+(defn game-over []
+  (let [paused? @(re-frame/subscribe [::subs/paused?])]
+    (when paused?
+      [:rect.paused
+       {:width  (config/dimensions 0)
+        :height (config/dimensions 1)}]
+      [:text {:x         (/ (config/dimensions 0) 2)
+              :y         (/ (config/dimensions 1) 2)
+              :font-size 5 :fill "white"}
+       "Paused"])))
 
 (defn ui-pane []
   [:g.ui
-   [clock]])
+   [timer]
+   [score]
+   [game-over]])
 
 
 (defn main-panel []

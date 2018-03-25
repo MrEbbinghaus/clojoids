@@ -9,9 +9,13 @@ html, body {
     left: 0;
 }
 
-.world > rect.background{
+.world > rect.background {
     border: 1px solid black;
     fill: rgba(0, 0, 0, 0.80);
+}
+
+.ui > rect.paused {
+    fill: rgba(0, 0, 0, 0.30);
 }
 
 .spaceship > .body {
